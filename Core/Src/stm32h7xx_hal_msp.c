@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
+extern DMA_HandleTypeDef hdma_tim2_ch4;
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
@@ -184,6 +185,96 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* heth)
   /* USER CODE BEGIN ETH_MspDeInit 1 */
 
   /* USER CODE END ETH_MspDeInit 1 */
+  }
+
+}
+
+/**
+* @brief TIM_IC MSP Initialization
+* This function configures the hardware resources used in this example
+* @param htim_ic: TIM_IC handle pointer
+* @retval None
+*/
+void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(htim_ic->Instance==TIM2)
+  {
+  /* USER CODE BEGIN TIM2_MspInit 0 */
+
+  /* USER CODE END TIM2_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM2_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**TIM2 GPIO Configuration
+    PA3     ------> TIM2_CH4
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_3;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* TIM2 DMA Init */
+    /* TIM2_CH4 Init */
+    hdma_tim2_ch4.Instance = DMA1_Stream0;
+    hdma_tim2_ch4.Init.Request = DMA_REQUEST_TIM2_CH4;
+    hdma_tim2_ch4.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_tim2_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim2_ch4.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim2_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_tim2_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_tim2_ch4.Init.Mode = DMA_NORMAL;
+    hdma_tim2_ch4.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_tim2_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_tim2_ch4) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(htim_ic,hdma[TIM_DMA_ID_CC4],hdma_tim2_ch4);
+
+    /* TIM2 interrupt Init */
+    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM2_IRQn);
+  /* USER CODE BEGIN TIM2_MspInit 1 */
+
+  /* USER CODE END TIM2_MspInit 1 */
+  }
+
+}
+
+/**
+* @brief TIM_IC MSP De-Initialization
+* This function freeze the hardware resources used in this example
+* @param htim_ic: TIM_IC handle pointer
+* @retval None
+*/
+void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef* htim_ic)
+{
+  if(htim_ic->Instance==TIM2)
+  {
+  /* USER CODE BEGIN TIM2_MspDeInit 0 */
+
+  /* USER CODE END TIM2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM2_CLK_DISABLE();
+
+    /**TIM2 GPIO Configuration
+    PA3     ------> TIM2_CH4
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_3);
+
+    /* TIM2 DMA DeInit */
+    HAL_DMA_DeInit(htim_ic->hdma[TIM_DMA_ID_CC4]);
+
+    /* TIM2 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(TIM2_IRQn);
+  /* USER CODE BEGIN TIM2_MspDeInit 1 */
+
+  /* USER CODE END TIM2_MspDeInit 1 */
   }
 
 }
