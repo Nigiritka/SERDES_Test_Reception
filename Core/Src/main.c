@@ -73,6 +73,16 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
+
+
+uint32_t Counter = 0;
+
+
+
+uint8_t RecievedData[200] = {0};
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,12 +137,34 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
+
+	// Enable interrupt for DMA (Transfer completed)
+	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
+
+	// Start DMA transfer from GPIO Port E
+	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, 120);
+
+	// Start Timer which will generate Clock for Data Transfer
+	HAL_TIM_Base_Start(&htim2);
+
+	// Start input capture of the TIMER 2 at pin PA3 (Channel 4 of the TIMER)
+	HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
+
+	// Enable DMA interrupt for input capture event
+	TIM2->DIER |= (1<<12);
+
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+	  HAL_Delay(500);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -280,7 +312,7 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
@@ -288,7 +320,7 @@ static void MX_TIM2_Init(void)
   sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
+  sConfigIC.ICFilter = 2;
   if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
@@ -393,9 +425,9 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 
 }
 
@@ -409,6 +441,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -421,6 +454,14 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : DATA_IN_2_Pin DATA_IN_3_Pin DATA_IN_4_Pin DATA_IN_5_Pin
+                           DATA_IN_6_Pin DATA_IN_7_Pin DATA_IN_0_Pin DATA_IN_1_Pin */
+  GPIO_InitStruct.Pin = DATA_IN_2_Pin|DATA_IN_3_Pin|DATA_IN_4_Pin|DATA_IN_5_Pin
+                          |DATA_IN_6_Pin|DATA_IN_7_Pin|DATA_IN_0_Pin|DATA_IN_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -451,6 +492,25 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+
+
+
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+
+	Counter++;
+
+}
+
+
+
+
+
+
+
 
 /* USER CODE END 4 */
 

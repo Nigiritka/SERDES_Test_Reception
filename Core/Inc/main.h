@@ -57,10 +57,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DATA_IN_2_Pin GPIO_PIN_2
+#define DATA_IN_2_GPIO_Port GPIOE
+#define DATA_IN_3_Pin GPIO_PIN_3
+#define DATA_IN_3_GPIO_Port GPIOE
+#define DATA_IN_4_Pin GPIO_PIN_4
+#define DATA_IN_4_GPIO_Port GPIOE
+#define DATA_IN_5_Pin GPIO_PIN_5
+#define DATA_IN_5_GPIO_Port GPIOE
+#define DATA_IN_6_Pin GPIO_PIN_6
+#define DATA_IN_6_GPIO_Port GPIOE
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
+#define DATA_IN_7_Pin GPIO_PIN_7
+#define DATA_IN_7_GPIO_Port GPIOE
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
@@ -71,6 +83,10 @@ void Error_Handler(void);
 #define USB_OTG_FS_PWR_EN_GPIO_Port GPIOD
 #define USB_OTG_FS_OVCR_Pin GPIO_PIN_7
 #define USB_OTG_FS_OVCR_GPIO_Port GPIOG
+#define DATA_IN_0_Pin GPIO_PIN_0
+#define DATA_IN_0_GPIO_Port GPIOE
+#define DATA_IN_1_Pin GPIO_PIN_1
+#define DATA_IN_1_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -219,7 +219,7 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef* htim_ic)
 
     /* TIM2 DMA Init */
     /* TIM2_CH4 Init */
-    hdma_tim2_ch4.Instance = DMA1_Stream0;
+    hdma_tim2_ch4.Instance = DMA1_Stream1;
     hdma_tim2_ch4.Init.Request = DMA_REQUEST_TIM2_CH4;
     hdma_tim2_ch4.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_tim2_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
