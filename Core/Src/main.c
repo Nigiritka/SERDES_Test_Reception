@@ -79,7 +79,7 @@ uint32_t Counter = 0;
 
 
 
-uint8_t RecievedData[200] = {0};
+uint8_t RecievedData[1000] = {0};
 
 
 
@@ -142,13 +142,10 @@ int main(void)
 	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
 
 	// Start DMA transfer from GPIO Port E
-	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, 120);
-
-	// Start Timer which will generate Clock for Data Transfer
-	HAL_TIM_Base_Start(&htim2);
+	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, 1000);
 
 	// Start input capture of the TIMER 2 at pin PA3 (Channel 4 of the TIMER)
-	HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
+	HAL_TIM_IC_Start(&htim2, TIM_CHANNEL_4);
 
 	// Enable DMA interrupt for input capture event
 	TIM2->DIER |= (1<<12);
