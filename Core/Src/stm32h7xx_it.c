@@ -62,8 +62,6 @@ extern DMA_HandleTypeDef hdma_tim2_ch4;
 extern TIM_HandleTypeDef htim2;
 /* USER CODE BEGIN EV */
 
-extern UART_HandleTypeDef huart3;
-extern uint8_t RecievedData;
 
 
 /* USER CODE END EV */
@@ -216,7 +214,7 @@ void DMA1_Stream1_IRQHandler(void)
   /* USER CODE END DMA1_Stream1_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_tim2_ch4);
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
-  HAL_UART_Transmit(&huart3, &RecievedData, 1000, 10);
+
 
 
   /* USER CODE END DMA1_Stream1_IRQn 1 */

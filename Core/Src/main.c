@@ -74,6 +74,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 /* USER CODE BEGIN PV */
 
 
+static void TransferComplete(DMA_HandleTypeDef *DmaHandle);
 
 uint32_t Counter = 0;
 
@@ -137,6 +138,8 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  	// Create a function for DMA Transfer complete interruption
+  	  hdma_tim2_ch4.XferCpltCallback = TransferComplete;
 
 	// Enable interrupt for DMA (Transfer completed)
 	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
@@ -314,10 +317,10 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 2;
+  sConfigIC.ICFilter = 0;
   if (HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
@@ -489,6 +492,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+static void TransferComplete(DMA_HandleTypeDef *DmaHandle)
+{
+	HAL_UART_Transmit(&huart3, RecievedData, 1000, 10);
+}
 
 
 
