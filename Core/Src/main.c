@@ -65,6 +65,7 @@ ETH_TxPacketConfig TxConfig;
 ETH_HandleTypeDef heth;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim5;
 DMA_HandleTypeDef hdma_tim2_ch4;
 
 UART_HandleTypeDef huart3;
@@ -73,6 +74,7 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
 
+#define TRANSFER_SIZE		10200					// size of the message in bytes
 
 static void TransferComplete(DMA_HandleTypeDef *DmaHandle);
 
@@ -80,7 +82,7 @@ uint32_t Counter = 0;
 
 
 
-uint8_t RecievedData[1000] = {0};
+uint8_t RecievedData[TRANSFER_SIZE] = {0};
 
 
 
@@ -94,6 +96,7 @@ static void MX_DMA_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -136,7 +139,12 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   MX_TIM2_Init();
   MX_USART3_UART_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
+
+
+  //Enable Ref clock for PLL of SERDES... Bad Idea because we need stable clock at both side of data communication
+  //HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
 
   	// Create a function for DMA Transfer complete interruption
   	  hdma_tim2_ch4.XferCpltCallback = TransferComplete;
@@ -145,13 +153,9 @@ int main(void)
 	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
 
 	// Start DMA transfer from GPIO Port E
-	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, 1000);
+	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, TRANSFER_SIZE);
 
-	// Start input capture of the TIMER 2 at pin PA3 (Channel 4 of the TIMER)
-	HAL_TIM_IC_Start(&htim2, TIM_CHANNEL_4);
 
-	// Enable DMA interrupt for input capture event
-	TIM2->DIER |= (1<<12);
 
 
 
@@ -332,6 +336,55 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 0;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 15;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 8;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
+  HAL_TIM_MspPostInit(&htim5);
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -446,11 +499,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TEST_GPIO_Port, TEST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
@@ -476,6 +532,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : TEST_Pin */
+  GPIO_InitStruct.Pin = TEST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(TEST_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LOCK_L_Pin */
+  GPIO_InitStruct.Pin = LOCK_L_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(LOCK_L_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : START_TRANSACTION_Pin */
+  GPIO_InitStruct.Pin = START_TRANSACTION_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(START_TRANSACTION_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : USB_OTG_FS_PWR_EN_Pin */
   GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -489,6 +564,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OTG_FS_OVCR_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
@@ -496,22 +578,49 @@ static void MX_GPIO_Init(void)
 
 static void TransferComplete(DMA_HandleTypeDef *DmaHandle)
 {
-	HAL_UART_Transmit(&huart3, RecievedData, 1000, 10);
+	// Find start of the message
+	for (uint32_t i=0; i<TRANSFER_SIZE; i++)
+	{
+		if (RecievedData[i] == 76)
+		{
+			// Find the first symbol, extract data, send message to user
+			HAL_UART_Transmit(&huart3, &RecievedData[i], 10000, 10);
+			break;
+		}
+		else
+			i++;
+	}
+
+
+
+	//HAL_UART_Transmit(&huart3, RecievedData, TRANSFER_SIZE, 10);
+
+	// Enable interrupt for DMA (Transfer completed)
+	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
+
+	// Start DMA transfer from GPIO Port E
+	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, TRANSFER_SIZE);
+
 }
 
 
 
 
 
-
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 
-	Counter++;
+	// Start input capture of the TIMER 2 at pin PA3 (Channel 4 of the TIMER)
+	HAL_TIM_IC_Start(&htim2, TIM_CHANNEL_4);
+
+	// Enable DMA interrupt for input capture event
+	TIM2->DIER |= (1<<12);
+
+	HAL_GPIO_WritePin(TEST_GPIO_Port, TEST_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+
 
 }
-
-
 
 
 

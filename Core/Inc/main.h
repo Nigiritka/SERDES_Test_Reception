@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -71,8 +73,16 @@ void Error_Handler(void);
 #define B1_GPIO_Port GPIOC
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
+#define TEST_Pin GPIO_PIN_0
+#define TEST_GPIO_Port GPIOG
+#define LOCK_L_Pin GPIO_PIN_1
+#define LOCK_L_GPIO_Port GPIOG
+#define LOCK_L_EXTI_IRQn EXTI1_IRQn
 #define DATA_IN_7_Pin GPIO_PIN_7
 #define DATA_IN_7_GPIO_Port GPIOE
+#define START_TRANSACTION_Pin GPIO_PIN_8
+#define START_TRANSACTION_GPIO_Port GPIOE
+#define START_TRANSACTION_EXTI_IRQn EXTI9_5_IRQn
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
 #define STLINK_RX_Pin GPIO_PIN_8
@@ -83,6 +93,7 @@ void Error_Handler(void);
 #define USB_OTG_FS_PWR_EN_GPIO_Port GPIOD
 #define USB_OTG_FS_OVCR_Pin GPIO_PIN_7
 #define USB_OTG_FS_OVCR_GPIO_Port GPIOG
+#define USB_OTG_FS_OVCR_EXTI_IRQn EXTI9_5_IRQn
 #define DATA_IN_0_Pin GPIO_PIN_0
 #define DATA_IN_0_GPIO_Port GPIOE
 #define DATA_IN_1_Pin GPIO_PIN_1
