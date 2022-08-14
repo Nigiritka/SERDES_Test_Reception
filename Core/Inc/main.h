@@ -73,8 +73,9 @@ void Error_Handler(void);
 #define B1_GPIO_Port GPIOC
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
-#define TEST_Pin GPIO_PIN_0
-#define TEST_GPIO_Port GPIOG
+#define nLOCKED_Pin GPIO_PIN_0
+#define nLOCKED_GPIO_Port GPIOG
+#define nLOCKED_EXTI_IRQn EXTI0_IRQn
 #define LOCK_L_Pin GPIO_PIN_1
 #define LOCK_L_GPIO_Port GPIOG
 #define LOCK_L_EXTI_IRQn EXTI1_IRQn
