@@ -1596,7 +1596,7 @@ static void TransferComplete(DMA_HandleTypeDef *DmaHandle)
  8000d9a:	b082      	sub	sp, #8
  8000d9c:	af00      	add	r7, sp, #0
  8000d9e:	6078      	str	r0, [r7, #4]
-	TIM2->DIER &=~ (1<<12);
+	TIM2->DIER &=~ TIM_DIER_CC4DE;
  8000da0:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
  8000da4:	68db      	ldr	r3, [r3, #12]
  8000da6:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
@@ -1769,15 +1769,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  8000f00:	2b01      	cmp	r3, #1
  8000f02:	d107      	bne.n	8000f14 <HAL_GPIO_EXTI_Callback+0x20>
 	{
-
-		// Enable DMA interrupt for input capture event, start data receiption
-		TIM2->DIER |= (1<<12);
+		// Enable DMA interrupt for input capture event, start data reception
+		TIM2->DIER |= TIM_DIER_CC4DE;
  8000f04:	f04f 4380 	mov.w	r3, #1073741824	; 0x40000000
  8000f08:	68db      	ldr	r3, [r3, #12]
  8000f0a:	f04f 4280 	mov.w	r2, #1073741824	; 0x40000000
  8000f0e:	f443 5380 	orr.w	r3, r3, #4096	; 0x1000
  8000f12:	60d3      	str	r3, [r2, #12]
-
 	}
 }
  8000f14:	bf00      	nop

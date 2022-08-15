@@ -80,10 +80,7 @@ static void TransferComplete(DMA_HandleTypeDef *DmaHandle);
 
 uint32_t Counter = 0;
 
-
-
 uint8_t RecievedData[TRANSFER_SIZE] = {0};
-
 
 
 /* USER CODE END PV */
@@ -152,7 +149,7 @@ int main(void)
 	// Enable interrupt for DMA (Transfer completed)
 	__HAL_DMA_ENABLE_IT(&hdma_tim2_ch4, DMA_IT_TC);
 
-	// Start DMA transfer from GPIO Port E
+	// Start DMA transfer from GPIO Port E to memory
 	HAL_DMA_Start(&hdma_tim2_ch4, (uint32_t) &GPIOE->IDR, (uint32_t) RecievedData, TRANSFER_SIZE);
 
 	// Start input capture of the TIMER 2 at pin PA3 (Channel 4 of the TIMER)
@@ -573,10 +570,9 @@ static void MX_GPIO_Init(void)
 
 static void TransferComplete(DMA_HandleTypeDef *DmaHandle)
 {
-	TIM2->DIER &=~ (1<<12);
+	TIM2->DIER &=~ TIM_DIER_CC4DE;
 	HAL_UART_Transmit(&huart3, RecievedData, TRANSFER_SIZE, 10);
 	/*
-
 	// Find start of the message
 	for (uint32_t i=0; i<TRANSFER_SIZE; i++)
 	{
@@ -608,13 +604,12 @@ static void TransferComplete(DMA_HandleTypeDef *DmaHandle)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	//check if it is GPIO0
+	//check if it is GPIO0 (LOCKED signal)
 	if (GPIO_Pin == GPIO_PIN_0)
 	{
-
-		// Enable DMA interrupt for input capture event, start data receiption
-		TIM2->DIER |= (1<<12);
-
+		// Enable DMA request for input capture event, start data reception
+		// Every falling edge of the input PWM data will be transfered from GPIOE 0-7 to Memory
+		TIM2->DIER |= TIM_DIER_CC4DE;
 	}
 }
 
